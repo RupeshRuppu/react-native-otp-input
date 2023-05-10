@@ -7,6 +7,12 @@ import {
   Animated,
   Platform,
 } from 'react-native';
+import {
+  default as RAnimated,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 const {width} = Dimensions.get('screen');
 const wrapperStyles = {
@@ -31,6 +37,8 @@ const defaultStyles = {
   fontSize: 22,
   fontWeight: 'bold',
 };
+
+const AnimatedTextInput = RAnimated.createAnimatedComponent(TextInput);
 
 function reducer(currState, action) {
   const copiedState = [...currState];
@@ -74,23 +82,31 @@ const OtpInputBox = forwardRef(({input, dispatch, error}, ref) => {
   const jiggle = useRef(new Animated.Value(0)).current;
   const animate = useRef(new Animated.Value(0)).current;
   const keyPressed = useRef(null);
+  const sharedValueBackground = useSharedValue(0);
+  const backgroundColorAnimtedStyles = useAnimatedStyle(() => {
+    return {
+      backgroundColor:
+        sharedValueBackground.value === 0 ? '#f0ce71' : 'rgb(255,120,120)',
+    };
+  });
 
   useEffect(() => {
     if (!error) startAnimation();
 
     if (error) {
-      console.log('hello jiggle started');
       startJiggleAnimation();
     }
   }, [error]);
 
   function startJiggleAnimation() {
+    sharedValueBackground.value = 1;
     Animated.loop(
       Animated.timing(jiggle, {
         toValue: 1,
         duration: 100,
         useNativeDriver: true,
       }).start(() => {
+        sharedValueBackground.value = withTiming(0, {duration: 600});
         Animated.timing(jiggle, {
           toValue: 0,
           duration: 100,
@@ -121,6 +137,7 @@ const OtpInputBox = forwardRef(({input, dispatch, error}, ref) => {
 
   function handleStateChange(text) {
     const passed = /[0-9]/.test(text);
+    if (input.value && keyPressed.current !== 'Backspace') return;
 
     /* update state and move forward */
     if (passed && keyPressed.current !== 'Backspace') {
@@ -175,16 +192,16 @@ const OtpInputBox = forwardRef(({input, dispatch, error}, ref) => {
               }),
             },
           ],
-          borderColor: error ? '#f51767' : 'transparent',
+          borderColor: error ? '#FF0000' : 'transparent',
           borderWidth: error ? 3 : 0,
           borderRadius: 10,
         }}>
-        <TextInput
+        <AnimatedTextInput
           ref={ref}
           maxLength={1}
           caretHidden={true}
           autoCorrect={false}
-          style={defaultStyles}
+          style={[defaultStyles, backgroundColorAnimtedStyles]}
           value={input.value}
           autoFocus={input.idx === 0}
           keyboardType={Platform.OS === 'android' ? 'number-pad' : 'numeric'}

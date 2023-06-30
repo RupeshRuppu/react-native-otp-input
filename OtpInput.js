@@ -292,3 +292,21 @@ const styles = StyleSheet.create({});
  * 
  * 
  */
+
+/*
+    Usage
+    export default function () {
+      const [value, setValue] = useState('');
+      console.log({value});
+      return (
+        <SafeAreaView
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <OtpInput count={4} error={false} setValue={setValue} />
+        </SafeAreaView>
+      );
+    }
+*/
